@@ -1,0 +1,2 @@
+# CinemachineRoom2DExtension
+
