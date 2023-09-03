@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace App.Cameras
     [DisallowMultipleComponent]
     public class CinemachineRoom2D : CinemachineExtension
     {
-        [SerializeField] Room2D _room;
+        [SerializeField] List<Room2D> _rooms;
 
         CinemachineVirtualCamera _vcam;
         float _cameraDistance;
@@ -24,6 +25,9 @@ namespace App.Cameras
         float _prevFieldOfView;
         float _prevAspectRatio;
         float _prevCameraDistance;
+
+        Room2D _prevRoom;
+        Vector3 _prevPosition;
 
         protected override void ConnectToVcam(bool connect)
         {
@@ -63,8 +67,25 @@ namespace App.Cameras
             // カメラのサイズを前回の情報として保持する
             RememberCurrentCameraSize(lens);
 
-            // Room と Follow ターゲットの位置関係からカメラの位置を補正する
-            state.RawPosition = ClampCameraToRoomBounds(state.RawPosition);
+            Room2D room = null;
+            if (_vcam.Follow != null)
+            {
+                room = FindRoomByPosition(_vcam.Follow.position);
+                if (room != null)
+                {
+                    // Room と Follow ターゲットの位置関係からカメラの位置を補正する
+                    // NOTE: Room 切り替わり時のカメラ移動に遷移アニメーションを加えるならここを改良する
+                    state.RawPosition = ClampCameraToRoomBounds(state.RawPosition, room);
+                }
+                else
+                {
+                    // ターゲット位置を範囲内に含む Room が見つからない場合、前回のカメラ位置のままにする
+                    state.RawPosition = _prevPosition;
+                }
+            }
+
+            _prevRoom = room;
+            _prevPosition = state.RawPosition;
         }
 
         float GetCameraDistance()
@@ -78,12 +99,23 @@ namespace App.Cameras
             return 0;
         }
 
+        void RememberCurrentCameraSize(LensSettings lens)
+        {
+            _prevOrthographic = lens.Orthographic;
+            _prevOrthographicSize = lens.OrthographicSize;
+            _prevAspectRatio = lens.Aspect;
+            _prevFieldOfView = lens.FieldOfView;
+
+            _prevCameraDistance = _cameraDistance;
+        }
+
         /// <summary>
         /// カメラの状態を前回と比較して内容に変更があるかどうかを返す
         /// </summary>
         /// <returns>変更があるか？</returns>
         bool IsCameraSizeChanged(LensSettings lens)
         {
+            // 投影方式
             if (lens.Orthographic != _prevOrthographic)
             {
                 return true;
@@ -108,16 +140,6 @@ namespace App.Cameras
             }
 
             return false;
-        }
-
-        void RememberCurrentCameraSize(LensSettings lens)
-        {
-            _prevOrthographic = lens.Orthographic;
-            _prevOrthographicSize = lens.OrthographicSize;
-            _prevAspectRatio = lens.Aspect;
-            _prevFieldOfView = lens.FieldOfView;
-
-            _prevCameraDistance = _cameraDistance;
         }
 
         /// <summary>
@@ -152,33 +174,69 @@ namespace App.Cameras
         }
 
         /// <summary>
+        /// ターゲット位置を範囲に含む Room を返す.
+        /// Room が複数ある場合は直前の Room を優先で返す
+        /// </summary>
+        /// <param name="position">ターゲット位置</param>
+        /// <returns>Room</returns>
+        Room2D FindRoomByPosition(Vector3 position)
+        {
+            // 直前の Room 範囲内かどうかを優先チェック
+            // （Room の範囲が重なっている場合は前回 Room を優先させる）
+            if (_prevRoom != null)
+            {
+                if (Contains(_prevRoom, position))
+                {
+                    return _prevRoom;
+                }
+            }
+
+            // 他の Room 範囲内かチェック
+            for (var i = _rooms.Count - 1; i >= 0; i--)
+            {
+                if (Contains(_rooms[i], position))
+                {
+                    return _rooms[i];
+                }
+            }
+
+            return null;
+
+            bool Contains(Room2D room, Vector3 pos)
+            {
+                return room.Bounds.Contains(new Vector2(pos.x, pos.y));
+            }
+        }
+
+        /// <summary>
         /// カメラの位置を Room の境界に合わせて調整する
         /// </summary>
         /// <param name="rawPosition">調整前の位置</param>
+        /// <param name="room">Room</param>
         /// <returns>調整後の位置</returns>
-        Vector3 ClampCameraToRoomBounds(Vector3 rawPosition)
+        Vector3 ClampCameraToRoomBounds(Vector3 rawPosition, Room2D room)
         {
             // カメラのy座標を補正する
-            if (_cameraHeight < _room.Bounds.height)
+            if (_cameraHeight < room.Bounds.height)
             {
                 // カメラの高さが Room の高さよりも小さい場合、カメラのy座標を Bounds の範囲内に制約する
                 // カメラの中心が Room の端に接触しないようにするため、カメラの半分の高さを余白として考慮
-                rawPosition.y = Mathf.Clamp(rawPosition.y, _room.Bounds.yMin + _cameraHeight * 0.5f, _room.Bounds.yMax - _cameraHeight * 0.5f);
+                rawPosition.y = Mathf.Clamp(rawPosition.y, room.Bounds.yMin + _cameraHeight * 0.5f, room.Bounds.yMax - _cameraHeight * 0.5f);
             }
             else
             {
                 // カメラの高さが Room の高さよりも大きい場合、Room の中心のy座標をカメラのy座標とする
-                rawPosition.y = _room.Bounds.center.y;
+                rawPosition.y = room.Bounds.center.y;
             }
 
             // カメラのx座標を補正する （y座標と同じ）
-            if (_cameraWidth < _room.Bounds.width)
+            if (_cameraWidth < room.Bounds.width)
             {
-                rawPosition.x = Mathf.Clamp(rawPosition.x, _room.Bounds.xMin + _cameraWidth * 0.5f, _room.Bounds.xMax - _cameraWidth * 0.5f);
+                rawPosition.x = Mathf.Clamp(rawPosition.x, room.Bounds.xMin + _cameraWidth * 0.5f, room.Bounds.xMax - _cameraWidth * 0.5f);
             }
             else
             {
-                rawPosition.x = _room.Bounds.center.x;
+                rawPosition.x = room.Bounds.center.x;
             }
 
             return rawPosition;
