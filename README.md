@@ -2,7 +2,7 @@
 
 矩形領域内にカメラの移動を制限する為の 2D / 2.5D カメラ用 Cinemachine Extension.  
 
-2D (Orthographic) だけなら標準の CinemachineConfiner で可能だけど 3D 版が無いので作成。
+2D (Orthographic) だけなら標準の CinemachineConfiner で可能だけど 3D 版が無いので作成。  
 領域を Collider ではなく Rect で制限しているので複雑な形状には対応していない。
 
 ![image01](docs/images/image01.png)
@@ -11,7 +11,7 @@
 
 https://tukanpo.github.io/CinemachineRoom2DExtension/
 
-上にある画像の緑の枠が設定済の制限領域（Room と呼ぶ）  
+上にある画像の緑の枠が設定済の制限領域。（Room と呼ぶ）  
 WASD（又はカーソルキー）で移動したりはみ出したりして確認可能。  
 Space キーで投影方式の切替え。 
 
@@ -42,5 +42,5 @@ Perspective なら `OrthographicSize`、Orthographic なら `FOV` を出力。
 詳細は DemoScene コンポーネント内のコードを参照。  
 
 ## 参考
-カメラからの距離で求める錐台のサイズ
+カメラからの距離で求める錐台のサイズ  
 https://docs.unity3d.com/ja/2022.3/Manual/FrustumSizeAtDistance.html
