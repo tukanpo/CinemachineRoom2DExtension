@@ -46,9 +46,12 @@ Room2D 内カメラ移動制限 Cinemachine Extension
 
 ## Demo シーンについて追記
 
-Space キーでの投影方式切替時に `投影方式の見た目を合わせる為のカメラ設定` が UnityEditor 上でログ出力される。
+Space キーでの投影方式切替時に `投影方式の見た目を(可能な限り)合わせる為のカメラ設定` が UnityEditor 上でログ出力される。  
+（Perspective なら `OrthographicSize`、Orthographic なら `FOV` を出力）  
 
-Perspective なら `OrthographicSize`、Orthographic なら `FOV` を出力。  
+あくまでカメラから見た z = 0 の位置にある同じ平面上の見た目が揃うだけ。  
+Demo では灰色のキューブの前面が揃うよう位置を合わせてある。
+
 詳細は [DemoScene](Assets/App/Scripts/Scenes/DemoScene.cs) コンポーネント内のコードを参照。  
 
 ## 参考
