@@ -3,7 +3,7 @@
 namespace App.Cameras
 {
     /// <summary>
-    /// 2D カメラの表示制限領域
+    /// 矩形の移動制限領域
     /// </summary>
     public class Room2D : MonoBehaviour
     {

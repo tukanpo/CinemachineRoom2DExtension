@@ -5,8 +5,6 @@ namespace App.Cameras.Editor
 {
     /// <summary>
     /// Room2D コンポーネント Editor 拡張
-    /// - SceneView 内でハンドル型 Gizmo を表示して調整可能にする
-    /// - Undo /Redo 対応
     /// </summary>
     [CustomEditor(typeof(Room2D))]
     public class Room2DEditor : UnityEditor.Editor

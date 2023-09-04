@@ -6,7 +6,7 @@ using UnityEngine;
 namespace App.Cameras
 {
     /// <summary>
-    /// Room2D 内にカメラの移動を制限する為の Cinemachine Extension<br/>
+    /// Room2D 内にカメラの移動を制限する為の Cinemachine Extension
     /// </summary>
     [AddComponentMenu("")]
     [DisallowMultipleComponent]
@@ -67,19 +67,29 @@ namespace App.Cameras
             // カメラのサイズを前回の情報として保持する
             RememberCurrentCameraSize(lens);
 
+            // カメラ位置を補正する
             Room2D room = null;
             if (_vcam.Follow != null)
             {
+                // Follow ターゲットの位置を範囲に含む Room を探す
                 room = FindRoomByPosition(_vcam.Follow.position);
+                if (room == null)
+                {
+                    // Room が見つからない場合は前回の Room にする
+                    // ターゲットが Room 外に出ても可能な限りカメラを追従させる
+                    room = _prevRoom;
+                }
+
                 if (room != null)
                 {
-                    // Room と Follow ターゲットの位置関係からカメラの位置を補正する
+                    // Room とターゲットの位置関係からカメラの位置を補正する
                     // NOTE: Room 切り替わり時のカメラ移動に遷移アニメーションを加えるならここを改良する
                     state.RawPosition = ClampCameraToRoomBounds(state.RawPosition, room);
                 }
                 else
                 {
-                    // ターゲット位置を範囲内に含む Room が見つからない場合、前回のカメラ位置のままにする
+                    // Room が見つからない場合、前回のカメラ位置のままにする
+                    // （これは最初から Room 内にいなかった場合のみで通常はありえない）
                     state.RawPosition = _prevPosition;
                 }
             }
