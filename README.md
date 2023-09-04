@@ -31,7 +31,7 @@ https://tukanpo.github.io/CinemachineRoom2DExtension/
 矩形領域を表現する為のコンポーネント。  
 内部で Rect を保持しているだけの単純なクラス
 
-#### [Room2DEditor]((Assets/App/Scripts/Cameras/Editor/Room2DEditor.cs))
+#### [Room2DEditor](Assets/App/Scripts/Cameras/Editor/Room2DEditor.cs)
 SceneView 上での編集をサポートする為のエディタ拡張  
 
 #### [CinemachineRoom2D](Assets/App/Scripts/Cameras/CinemachineRoom2D.cs)
